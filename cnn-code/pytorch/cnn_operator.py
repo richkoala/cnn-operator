@@ -58,7 +58,7 @@ def cnn_operator_conv(fm_in_shape,kernel_shape,conv_stride_info,conv_dilation_in
 
     print("\n\n")
     print("==================================================")
-    print("the fm_in filter_kernel fm_out is save in the file")
+    print("=the Conv process done DB have saved  in the file=")
     print("==================================================")
     print("\n\n")
 
@@ -127,7 +127,41 @@ def cnn_operator_pool(fm_in_shape,pool_kernel_info,pool_stride_info,pool_dilatio
     np.savetxt(dir+'/pool_fm_out_'+pool_mode+'.txt', fm_out.reshape(-1, 1))
 
     print("==================================================")
-    print("the fm_in filter_kernel fm_out is save in the file")
+    print("=the Pool process done DB have saved  in the file=")
     print("==================================================")
 
+def cnn_operator_fc(batch_size, fm_in_node_num, fm_out_node_num):
+# 特征数据 与权重偏置数据生成
 
+    fm_in_shape  = [batch_size, fm_in_node_num]  # 输入特征图 ====shape为 [batch_size,FmIn_node]===
+    fm_out_shape = [batch_size, fm_out_node_num]  # 卷积核参数 ====shape为[batch_size,FmOut_node]==
+
+    fm_in_np = np.random.randn(fm_in_shape[0], fm_in_shape[1])
+    weight_np = np.random.randn(fm_out_shape[1], fm_in_shape[1])  # Note: weight data order (out_features , in_features)
+    bias_np = np.random.randn(fm_out_shape[1])  # Note: bias   data order (out_features)
+    fc_weight = torch.from_numpy(weight_np)
+    fc_bias = torch.from_numpy(bias_np)
+    fm_in = torch.from_numpy(fm_in_np)
+
+    # FC全连接层
+    fc_layer = nn.Linear(fm_in_shape[1], fm_out_shape[1], bias=True)
+    fc_layer.weight = torch.nn.Parameter(fc_weight)
+    fc_layer.bias = torch.nn.Parameter(fc_bias)
+
+    fm_out = fc_layer.forward(fm_in)
+    fm_out_np = fm_out.detach().numpy()
+
+#文件保存
+    dir = 'inout'
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+#输入输出数据打印
+    np.savetxt(dir + '/fc_fm_in.txt' , fm_in_np.reshape(-1,1))
+    np.savetxt(dir + '/fc_weight.txt', weight_np.reshape(-1,1))
+    np.savetxt(dir + '/fc_bias.txt'  , bias_np.reshape(-1,1))
+    np.savetxt(dir + '/fc_fm_out.txt', fm_out_np.reshape(-1,1))
+
+    print("==================================================")
+    print("==the FC process done DB have saved  in the file==")
+    print("==================================================")
